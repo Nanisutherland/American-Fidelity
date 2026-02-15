@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>American Fidelity - Document Intelligence Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ==================== LOGIN VIEW ==================== -->
+    <div id="loginView" class="view active">
+        <div class="login-container">
+            <div class="login-left">
+                <div class="login-left-content">
+                    <div class="brand-icon">
+                        <span class="material-icons-outlined">shield</span>
+                    </div>
+                    <h1>American Fidelity</h1>
+                    <p class="tagline">Document Intelligence Platform</p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <span class="material-icons-outlined">auto_awesome</span>
+                            <span>AI-Powered PDF Extraction</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="material-icons-outlined">speed</span>
+                            <span>Real-time Processing</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="material-icons-outlined">verified</span>
+                            <span>Accurate Data Extraction</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="login-left-bg"></div>
+            </div>
+            <div class="login-right">
+                <div class="login-form-wrapper">
+                    <div class="login-header">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to your account to continue</p>
+                    </div>
+                    <form id="loginForm" class="login-form" autocomplete="off">
+                        <div class="form-group">
+                            <label for="userId">User ID</label>
+                            <div class="input-wrapper">
+                                <span class="material-icons-outlined input-icon">person_outline</span>
+                                <input type="text" id="userId" placeholder="Enter your user ID" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-wrapper">
+                                <span class="material-icons-outlined input-icon">lock_outline</span>
+                                <input type="password" id="password" placeholder="Enter your password" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword()">
+                                    <span class="material-icons-outlined" id="eyeIcon">visibility_off</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="loginError" class="error-message hidden">
+                            <span class="material-icons-outlined">error_outline</span>
+                            <span>Invalid credentials. Please try again.</span>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span>Sign In</span>
+                            <span class="material-icons-outlined">arrow_forward</span>
+                        </button>
+                    </form>
+                    <div class="login-footer">
+                        <p>Powered by <strong>Sutherland</strong> &times; <strong>n8n</strong> Automation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div id="dashboardView" class="view">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <span class="material-icons-outlined brand-shield">shield</span>
+                <span class="nav-title">American Fidelity</span>
+                <span class="nav-divider"></span>
+                <span class="nav-subtitle">Document Intelligence</span>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="upload" onclick="switchTab('upload')">
+                    <span class="material-icons-outlined">cloud_upload</span>
+                    <span>Upload</span>
+                </button>
+                <button class="nav-tab" data-tab="results" onclick="switchTab('results')">
+                    <span class="material-icons-outlined">analytics</span>
+                    <span>Results</span>
+                    <span id="resultsBadge" class="tab-badge hidden">0</span>
+                </button>
+            </div>
+            <div class="nav-actions">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="material-icons-outlined">person</span>
+                    </div>
+                    <span class="user-name">Admin</span>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <span class="material-icons-outlined">logout</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Upload Tab -->
+        <div id="uploadTab" class="tab-content active">
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>Upload Documents</h2>
+                        <p>Upload your PDF documents for intelligent data extraction</p>
+                    </div>
+                    <div class="upload-stats">
+                        <div class="stat-chip">
+                            <span class="material-icons-outlined">description</span>
+                            <span id="fileCount">0 / 2 files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-section">
+                    <div class="upload-dropzone" id="dropzone">
+                        <div class="dropzone-content">
+                            <div class="upload-icon-wrapper">
+                                <span class="material-icons-outlined">cloud_upload</span>
+                                <div class="upload-icon-ring"></div>
+                            </div>
+                            <h3>Drag & Drop your PDF files here</h3>
+                            <p>or click to browse from your computer</p>
+                            <div class="upload-constraints">
+                                <span class="material-icons-outlined">info</span>
+                                <span>Maximum 2 PDF files allowed | Max size: 10MB per file</span>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf" multiple hidden>
+                    </div>
+
+                    <!-- File List -->
+                    <div id="fileList" class="file-list hidden">
+                        <!-- Files will be dynamically added here -->
+                    </div>
+
+                    <!-- Process Button -->
+                    <div id="processSection" class="process-section hidden">
+                        <button class="btn-process" id="processBtn" onclick="processDocuments()">
+                            <span class="material-icons-outlined">rocket_launch</span>
+                            <span>Extract Data</span>
+                        </button>
+                        <button class="btn-clear" onclick="clearFiles()">
+                            <span class="material-icons-outlined">delete_outline</span>
+                            <span>Clear All</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Processing State -->
+                <div id="processingState" class="processing-state hidden">
+                    <div class="processing-card">
+                        <div class="processing-animation">
+                            <div class="loader-ring">
+                                <div class="ring-segment"></div>
+                                <div class="ring-segment"></div>
+                                <div class="ring-segment"></div>
+                            </div>
+                            <div class="loader-center">
+                                <span class="material-icons-outlined">auto_awesome</span>
+                            </div>
+                        </div>
+                        <h3>Processing Documents</h3>
+                        <p class="processing-subtitle">AI is extracting data from your documents...</p>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <span class="progress-text" id="progressText">Initializing...</span>
+                        </div>
+                        <div class="processing-steps">
+                            <div class="step active" id="step1">
+                                <span class="material-icons-outlined">upload_file</span>
+                                <span>Uploading</span>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step2">
+                                <span class="material-icons-outlined">document_scanner</span>
+                                <span>Scanning</span>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step3">
+                                <span class="material-icons-outlined">auto_fix_high</span>
+                                <span>Extracting</span>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step4">
+                                <span class="material-icons-outlined">check_circle</span>
+                                <span>Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Tab -->
+        <div id="resultsTab" class="tab-content">
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>Extraction Results</h2>
+                        <p>View and download extracted data from your documents</p>
+                    </div>
+                </div>
+
+                <!-- No Results State -->
+                <div id="noResults" class="no-results">
+                    <span class="material-icons-outlined">search_off</span>
+                    <h3>No Results Yet</h3>
+                    <p>Upload and process PDF documents to see extraction results here.</p>
+                    <button class="btn-go-upload" onclick="switchTab('upload')">
+                        <span class="material-icons-outlined">cloud_upload</span>
+                        <span>Go to Upload</span>
+                    </button>
+                </div>
+
+                <!-- Results Container -->
+                <div id="resultsContainer" class="results-container hidden">
+                    <!-- Results will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
