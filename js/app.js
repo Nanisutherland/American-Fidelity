@@ -177,55 +177,78 @@ async function processDocuments() {
     resetProcessingSteps();
 
     try {
+        // Step 1: Preparing upload
         updateProgress(10, 'Preparing documents...');
         activateStep('step1');
-        await delay(800);
-
-        updateProgress(30, 'Sending to extraction engine...');
-        completeStep('step1');
-        activateStep('step2');
 
         const formData = new FormData();
-        APP_STATE.uploadedFiles.forEach((file, index) => { formData.append(`file${index + 1}`, file); });
+        APP_STATE.uploadedFiles.forEach((file, index) => {
+            formData.append(`file${index + 1}`, file);
+        });
 
-        updateProgress(50, 'Processing documents via AI...');
-        completeStep('step2');
-        activateStep('step3');
+        await delay(600);
+        completeStep('step1');
+
+        // Step 2: Sending to n8n webhook
+        updateProgress(25, 'Sending to n8n webhook...');
+        activateStep('step2');
 
         let response;
         try {
-            response = await fetch(APP_STATE.webhookUrl, { method: 'POST', body: formData });
+            response = await fetch(APP_STATE.webhookUrl, {
+                method: 'POST',
+                body: formData,
+            });
         } catch (fetchError) {
-            console.warn('Webhook unreachable, using demo data:', fetchError.message);
-            updateProgress(70, 'Extracting key fields...');
-            await delay(2000);
-            response = null;
+            // Network error - webhook unreachable
+            throw new Error(
+                'Cannot connect to n8n webhook. Please ensure:\n' +
+                '1. n8n is running on localhost:5678\n' +
+                '2. The webhook workflow is active\n' +
+                '3. Webhook URL is correct\n\n' +
+                'Error: ' + fetchError.message
+            );
         }
 
-        updateProgress(85, 'Finalizing extraction...');
-        await delay(500);
+        completeStep('step2');
 
-        let results;
-        if (response && response.ok) {
-            const data = await response.json();
-            results = normalizeResults(data);
-        } else {
-            results = generateDemoResults();
+        // Step 3: Waiting for n8n to process & respond
+        updateProgress(50, 'n8n is extracting data from documents...');
+        activateStep('step3');
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(
+                `n8n webhook returned error (HTTP ${response.status}).\n` +
+                `Response: ${errorText}\n\n` +
+                'Please check your n8n workflow and Respond to Webhook node.'
+            );
         }
 
-        updateProgress(100, 'Extraction complete!');
+        // Parse the response from n8n's "Respond to Webhook" node
+        updateProgress(80, 'Receiving extracted data from n8n...');
+        const data = await response.json();
+
+        updateProgress(90, 'Finalizing results...');
+        const results = normalizeResults(data);
+
         completeStep('step3');
+
+        // Step 4: Done
+        updateProgress(100, 'Extraction complete!');
         activateStep('step4');
         completeStep('step4');
-        await delay(1000);
+        await delay(800);
 
         APP_STATE.results = results;
         renderResults();
         showToast('Documents processed successfully!', 'success');
         switchTab('results');
+
     } catch (error) {
         console.error('Processing error:', error);
-        showToast('Processing failed. Please try again.', 'error');
+        showToast(error.message || 'Processing failed. Please try again.', 'error');
+        // Return to upload view so user can retry
         uploadArea.style.display = '';
         processingState.classList.add('hidden');
     } finally {
@@ -249,45 +272,6 @@ function normalizeResults(data) {
     return APP_STATE.uploadedFiles.map((file) => ({ fileName: file.name, data: data }));
 }
 
-function generateDemoResults() {
-    const demoData = [
-        {
-            documentType: 'Insurance Application',
-            policyNumber: 'AF-2026-001847',
-            applicantName: 'John M. Anderson',
-            dateOfBirth: '1985-03-15',
-            ssn: '***-**-4521',
-            employer: 'Acme Corporation',
-            annualSalary: '$87,500.00',
-            coverageType: 'Group Disability Insurance',
-            coverageAmount: '$5,000/month',
-            effectiveDate: '2026-03-01',
-            beneficiary: 'Sarah L. Anderson',
-            beneficiaryRelation: 'Spouse',
-            applicationDate: '2026-02-10',
-            status: 'Pending Review',
-            agentCode: 'AG-4421',
-        },
-        {
-            documentType: 'Benefits Enrollment Form',
-            enrollmentId: 'ENR-2026-093421',
-            employeeName: 'Maria C. Rodriguez',
-            employeeId: 'EMP-78234',
-            dateOfBirth: '1990-07-22',
-            department: 'Engineering',
-            planType: 'Comprehensive Health Plan',
-            tier: 'Employee + Family',
-            monthlyPremium: '$342.50',
-            dentalCoverage: 'Yes - Premium Plan',
-            visionCoverage: 'Yes - Standard Plan',
-            flexSpending: '$2,500 annual election',
-            effectiveDate: '2026-04-01',
-            enrollmentPeriod: 'Open Enrollment 2026',
-            status: 'Confirmed',
-        },
-    ];
-    return APP_STATE.uploadedFiles.map((file, index) => ({ fileName: file.name, data: demoData[index] || demoData[0] }));
-}
 
 // ============================
 // Progress & Steps
