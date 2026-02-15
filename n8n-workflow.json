@@ -38,14 +38,41 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "// Parse extracted PDF text into structured JSON\n// Extracts all 'Key: Value' pairs from the PDF text\nconst results = [];\n\nfor (const item of $input.all()) {\n  const text = item.json.text || '';\n  const parsed = {};\n\n  const lines = text.split('\\n');\n  let currentKey = null;\n\n  for (let i = 0; i < lines.length; i++) {\n    const trimmed = lines[i].trim();\n    if (!trimmed) {\n      currentKey = null;\n      continue;\n    }\n\n    // Find first colon to split Key: Value\n    const colonIdx = trimmed.indexOf(':');\n\n    if (colonIdx > 0) {\n      const key = trimmed.substring(0, colonIdx).trim().replace(/\\s+/g, ' ');\n      const value = trimmed.substring(colonIdx + 1).trim();\n\n      // Only accept reasonable key lengths (skip URLs, timestamps etc)\n      if (key.length > 0 && key.length < 80) {\n        parsed[key] = value;\n        currentKey = key;\n      }\n    } else if (currentKey && parsed[currentKey] !== undefined) {\n      // Continuation line - append to previous value\n      parsed[currentKey] += ' ' + trimmed;\n    }\n  }\n\n  results.push(parsed);\n}\n\n// Return as { results: [...] } so the webapp can display each PDF separately\nreturn [{ json: { results } }];"
+        "promptType": "define",
+        "text": "=Extract ALL data from the following PDF document and return it as a single flat JSON object.\n\nEvery field label in the document becomes a JSON key.\nEvery field value becomes the JSON value.\n\nExtract everything — leave nothing out. Include all fields, numbers, dates, IDs, names, addresses, and any other data present.\n\nReturn ONLY the JSON object. No explanations, no markdown code blocks, no text before or after.\n\nDOCUMENT TEXT:\n{{ $json.text }}",
+        "options": {
+          "systemMessage": "You are an expert document data extraction AI specialized in insurance, benefits, enrollment, and financial documents for American Fidelity.\n\nYour task is to extract ALL data from PDF document text and return it as a clean, structured JSON object with key-value pairs.\n\nRULES:\n1. Extract EVERY single field and its value from the document — skip absolutely nothing\n2. Return ONLY a valid JSON object — no explanations, no markdown code blocks (```), no additional text before or after the JSON\n3. Use the exact field labels from the document as JSON keys\n4. Clean up values: trim extra whitespace, normalize spacing\n5. Keep numeric-like values as strings to preserve formatting (phone numbers, Tax IDs, zip codes, SSNs, policy numbers, MCP numbers)\n6. If a field exists in the document but has no value, use an empty string \"\"\n7. Handle all document formats: tables, forms, column layouts, headers, lists, paragraphs\n8. For checkbox or boolean fields, use \"Yes\" or \"No\"\n9. For date fields, preserve the original format exactly as it appears\n10. If data is in a table, extract each row as key-value pairs using column headers as context\n11. Do NOT invent or hallucinate data — only extract what actually appears in the document\n\nEXAMPLE:\nIf the document contains:\n  Group Name            ABC Manufacturing - Texas\n  Assigned Account Mgr  Jane Doe\n  Eligible Employees    600\n  MCP Number            769006\n  Tax ID#               45-1122334\n\nYou must return exactly:\n{\n  \"Group Name\": \"ABC Manufacturing - Texas\",\n  \"Assigned Account Manager\": \"Jane Doe\",\n  \"Eligible Employees\": \"600\",\n  \"MCP Number\": \"769006\",\n  \"Tax ID#\": \"45-1122334\"\n}"
+        }
       },
-      "id": "d4e5f6a7-0001-4000-b000-000000000004",
-      "name": "Parse Text to JSON",
+      "id": "d4e5f6a7-0001-4000-b000-000000000010",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [960, 340]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000011",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [960, 560]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Parse AI agent output into structured results array\nconst results = [];\n\nfor (const item of $input.all()) {\n  let output = item.json.output || item.json.text || '';\n\n  // Remove markdown code blocks if AI wrapped the JSON in ```json ... ```\n  output = output.replace(/```json\\s*/gi, '').replace(/```\\s*/gi, '').trim();\n\n  try {\n    const parsed = JSON.parse(output);\n    results.push(parsed);\n  } catch (e) {\n    // If direct parse fails, try to find JSON object in the text\n    const jsonMatch = output.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      try {\n        results.push(JSON.parse(jsonMatch[0]));\n      } catch (e2) {\n        results.push({ extractionError: 'Could not parse AI response', rawOutput: output });\n      }\n    } else {\n      results.push({ extractionError: 'No JSON found in AI response', rawOutput: output });\n    }\n  }\n}\n\n// Return as { results: [...] } so the webapp displays each PDF separately\nreturn [{ json: { results } }];"
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000012",
+      "name": "Format Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [960, 340]
+      "position": [1200, 340]
     },
     {
       "parameters": {
@@ -56,7 +83,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1200, 340]
+      "position": [1440, 340]
     }
   ],
   "connections": {
@@ -86,14 +113,36 @@
       "main": [
         [
           {
-            "node": "Parse Text to JSON",
+            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse Text to JSON": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
       "main": [
         [
           {
