@@ -3,241 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>American Fidelity - Document Intelligence Platform</title>
+    <title>American Fidelity - Document Intelligence</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 </head>
 <body>
 
     <!-- ==================== LOGIN VIEW ==================== -->
     <div id="loginView" class="view active">
-        <div class="login-container">
-            <div class="login-left">
-                <div class="login-left-content">
-                    <div class="brand-icon">
-                        <span class="material-icons-outlined">shield</span>
-                    </div>
-                    <h1>American Fidelity</h1>
-                    <p class="tagline">Document Intelligence Platform</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-icons-outlined">auto_awesome</span>
-                            <span>AI-Powered PDF Extraction</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-icons-outlined">speed</span>
-                            <span>Real-time Processing</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-icons-outlined">verified</span>
-                            <span>Accurate Data Extraction</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="login-left-bg"></div>
+        <div class="login-bg">
+            <!-- SVG Wave decorations -->
+            <svg class="wave-deco wave-1" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path d="M0,192L48,176C96,160,192,128,288,138.7C384,149,480,203,576,213.3C672,224,768,192,864,165.3C960,139,1056,117,1152,128C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="rgba(255,255,255,0.03)"/>
+            </svg>
+            <svg class="wave-deco wave-2" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path d="M0,64L48,96C96,128,192,192,288,197.3C384,203,480,149,576,149.3C672,149,768,203,864,208C960,213,1056,171,1152,144C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="rgba(255,255,255,0.02)"/>
+            </svg>
+            <div class="floating-circle c1"></div>
+            <div class="floating-circle c2"></div>
+            <div class="floating-circle c3"></div>
+        </div>
+
+        <div class="login-card">
+            <!-- Sutherland Logo -->
+            <div class="sutherland-logo">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <rect x="2" y="8" width="5" height="24" rx="1" fill="#E53935" transform="rotate(-10 4.5 20)"/>
+                    <rect x="10" y="4" width="5" height="32" rx="1" fill="#E53935" transform="rotate(-5 12.5 20)"/>
+                    <rect x="18" y="2" width="5" height="36" rx="1" fill="#E53935"/>
+                    <rect x="26" y="4" width="5" height="32" rx="1" fill="#E53935" transform="rotate(5 28.5 20)"/>
+                    <rect x="34" y="8" width="5" height="24" rx="1" fill="#E53935" transform="rotate(10 36.5 20)"/>
+                </svg>
+                <span class="sutherland-text">SUTHERLAND</span>
             </div>
-            <div class="login-right">
-                <div class="login-form-wrapper">
-                    <div class="login-header">
-                        <h2>Welcome Back</h2>
-                        <p>Sign in to your account to continue</p>
-                    </div>
-                    <form id="loginForm" class="login-form" autocomplete="off">
-                        <div class="form-group">
-                            <label for="userId">User ID</label>
-                            <div class="input-wrapper">
-                                <span class="material-icons-outlined input-icon">person_outline</span>
-                                <input type="text" id="userId" placeholder="Enter your user ID" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <div class="input-wrapper">
-                                <span class="material-icons-outlined input-icon">lock_outline</span>
-                                <input type="password" id="password" placeholder="Enter your password" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword()">
-                                    <span class="material-icons-outlined" id="eyeIcon">visibility_off</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="loginError" class="error-message hidden">
-                            <span class="material-icons-outlined">error_outline</span>
-                            <span>Invalid credentials. Please try again.</span>
-                        </div>
-                        <button type="submit" class="btn-login">
-                            <span>Sign In</span>
-                            <span class="material-icons-outlined">arrow_forward</span>
+
+            <h1 class="login-title">American Fidelity</h1>
+            <p class="login-subtitle">Document Intelligence Platform</p>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="userId">Username</label>
+                    <input type="text" id="userId" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrap">
+                        <input type="password" id="password" placeholder="Enter password" required>
+                        <button type="button" class="eye-btn" onclick="togglePassword()">
+                            <span class="material-icons-outlined" id="eyeIcon">visibility_off</span>
                         </button>
-                    </form>
-                    <div class="login-footer">
-                        <p>Powered by <strong>Sutherland</strong> &times; <strong>n8n</strong> Automation</p>
                     </div>
                 </div>
-            </div>
+                <div id="loginError" class="login-error hidden">
+                    <span class="material-icons-outlined">error_outline</span>
+                    Invalid username or password.
+                </div>
+                <button type="submit" class="btn-signin">Sign In</button>
+            </form>
         </div>
     </div>
 
     <!-- ==================== DASHBOARD VIEW ==================== -->
     <div id="dashboardView" class="view">
-        <!-- Top Navigation -->
-        <nav class="top-nav">
-            <div class="nav-brand">
-                <span class="material-icons-outlined brand-shield">shield</span>
-                <span class="nav-title">American Fidelity</span>
-                <span class="nav-divider"></span>
-                <span class="nav-subtitle">Document Intelligence</span>
-            </div>
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-tab="upload" onclick="switchTab('upload')">
-                    <span class="material-icons-outlined">cloud_upload</span>
-                    <span>Upload</span>
-                </button>
-                <button class="nav-tab" data-tab="results" onclick="switchTab('results')">
-                    <span class="material-icons-outlined">analytics</span>
-                    <span>Results</span>
-                    <span id="resultsBadge" class="tab-badge hidden">0</span>
-                </button>
-            </div>
-            <div class="nav-actions">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <span class="material-icons-outlined">person</span>
+        <!-- Top Header Bar -->
+        <header class="app-header">
+            <div class="header-left">
+                <!-- American Fidelity Logo -->
+                <div class="af-logo">
+                    <svg width="36" height="36" viewBox="0 0 36 36">
+                        <rect x="2" y="6" width="4" height="24" rx="2" fill="#C62828"/>
+                        <rect x="9" y="3" width="4" height="30" rx="2" fill="#C62828"/>
+                        <rect x="16" y="0" width="4" height="36" rx="2" fill="#C62828"/>
+                        <rect x="23" y="3" width="4" height="30" rx="2" fill="#C62828"/>
+                        <rect x="30" y="6" width="4" height="24" rx="2" fill="#C62828"/>
+                    </svg>
+                    <div class="af-logo-text">
+                        <span class="af-name">AMERICAN FIDELITY</span>
+                        <span class="af-tagline">a different opinion</span>
                     </div>
-                    <span class="user-name">Admin</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-user">
+                    <span class="material-icons-outlined">account_circle</span>
+                    <span>Admin</span>
                 </div>
                 <button class="btn-logout" onclick="logout()">
                     <span class="material-icons-outlined">logout</span>
-                    <span>Logout</span>
+                    Logout
                 </button>
             </div>
-        </nav>
+        </header>
+        <div class="header-accent"></div>
 
-        <!-- Upload Tab -->
-        <div id="uploadTab" class="tab-content active">
-            <div class="page-container">
-                <div class="page-header">
-                    <div>
-                        <h2>Upload Documents</h2>
-                        <p>Upload your PDF documents for intelligent data extraction</p>
-                    </div>
-                    <div class="upload-stats">
-                        <div class="stat-chip">
-                            <span class="material-icons-outlined">description</span>
-                            <span id="fileCount">0 / 2 files</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Upload Area -->
-                <div class="upload-section">
-                    <div class="upload-dropzone" id="dropzone">
-                        <div class="dropzone-content">
-                            <div class="upload-icon-wrapper">
-                                <span class="material-icons-outlined">cloud_upload</span>
-                                <div class="upload-icon-ring"></div>
-                            </div>
-                            <h3>Drag & Drop your PDF files here</h3>
-                            <p>or click to browse from your computer</p>
-                            <div class="upload-constraints">
-                                <span class="material-icons-outlined">info</span>
-                                <span>Maximum 2 PDF files allowed | Max size: 10MB per file</span>
-                            </div>
-                        </div>
-                        <input type="file" id="fileInput" accept=".pdf" multiple hidden>
-                    </div>
-
-                    <!-- File List -->
-                    <div id="fileList" class="file-list hidden">
-                        <!-- Files will be dynamically added here -->
-                    </div>
-
-                    <!-- Process Button -->
-                    <div id="processSection" class="process-section hidden">
-                        <button class="btn-process" id="processBtn" onclick="processDocuments()">
-                            <span class="material-icons-outlined">rocket_launch</span>
-                            <span>Extract Data</span>
-                        </button>
-                        <button class="btn-clear" onclick="clearFiles()">
-                            <span class="material-icons-outlined">delete_outline</span>
-                            <span>Clear All</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Processing State -->
-                <div id="processingState" class="processing-state hidden">
-                    <div class="processing-card">
-                        <div class="processing-animation">
-                            <div class="loader-ring">
-                                <div class="ring-segment"></div>
-                                <div class="ring-segment"></div>
-                                <div class="ring-segment"></div>
-                            </div>
-                            <div class="loader-center">
-                                <span class="material-icons-outlined">auto_awesome</span>
-                            </div>
-                        </div>
-                        <h3>Processing Documents</h3>
-                        <p class="processing-subtitle">AI is extracting data from your documents...</p>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-                            <span class="progress-text" id="progressText">Initializing...</span>
-                        </div>
-                        <div class="processing-steps">
-                            <div class="step active" id="step1">
-                                <span class="material-icons-outlined">upload_file</span>
-                                <span>Uploading</span>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step" id="step2">
-                                <span class="material-icons-outlined">document_scanner</span>
-                                <span>Scanning</span>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step" id="step3">
-                                <span class="material-icons-outlined">auto_fix_high</span>
-                                <span>Extracting</span>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step" id="step4">
-                                <span class="material-icons-outlined">check_circle</span>
-                                <span>Complete</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results Tab -->
-        <div id="resultsTab" class="tab-content">
-            <div class="page-container">
-                <div class="page-header">
-                    <div>
-                        <h2>Extraction Results</h2>
-                        <p>View and download extracted data from your documents</p>
-                    </div>
-                </div>
-
-                <!-- No Results State -->
-                <div id="noResults" class="no-results">
-                    <span class="material-icons-outlined">search_off</span>
-                    <h3>No Results Yet</h3>
-                    <p>Upload and process PDF documents to see extraction results here.</p>
-                    <button class="btn-go-upload" onclick="switchTab('upload')">
+        <!-- Main Layout: Sidebar + Content -->
+        <div class="app-body">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <button class="sidebar-tab active" data-tab="upload" onclick="switchTab('upload')">
                         <span class="material-icons-outlined">cloud_upload</span>
-                        <span>Go to Upload</span>
+                        <span>Upload</span>
                     </button>
+                    <button class="sidebar-tab" data-tab="results" onclick="switchTab('results')">
+                        <span class="material-icons-outlined">assessment</span>
+                        <span>Results</span>
+                        <span id="resultsBadge" class="badge hidden">0</span>
+                    </button>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="sidebar-brand">
+                        <svg width="20" height="20" viewBox="0 0 40 40">
+                            <rect x="2" y="8" width="5" height="24" rx="1" fill="#E53935" transform="rotate(-10 4.5 20)"/>
+                            <rect x="10" y="4" width="5" height="32" rx="1" fill="#E53935" transform="rotate(-5 12.5 20)"/>
+                            <rect x="18" y="2" width="5" height="36" rx="1" fill="#E53935"/>
+                            <rect x="26" y="4" width="5" height="32" rx="1" fill="#E53935" transform="rotate(5 28.5 20)"/>
+                            <rect x="34" y="8" width="5" height="24" rx="1" fill="#E53935" transform="rotate(10 36.5 20)"/>
+                        </svg>
+                        <span>Powered by Sutherland</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content">
+                <!-- Upload Tab -->
+                <div id="uploadTab" class="tab-panel active">
+                    <div class="content-inner">
+                        <div class="content-header">
+                            <h2>Upload Documents</h2>
+                            <p>Upload PDF documents for AI-powered data extraction</p>
+                        </div>
+
+                        <!-- Upload Area -->
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-card">
+                                <div class="dropzone" id="dropzone">
+                                    <div class="dropzone-inner">
+                                        <div class="upload-icon">
+                                            <span class="material-icons-outlined">cloud_upload</span>
+                                        </div>
+                                        <h3>Drag & Drop PDF files here</h3>
+                                        <p>or click to browse files</p>
+                                        <span class="upload-hint">Supports: PDF (max 2 files, 10MB each)</span>
+                                    </div>
+                                    <input type="file" id="fileInput" accept=".pdf" multiple hidden>
+                                </div>
+
+                                <!-- File List -->
+                                <div id="fileList" class="file-list hidden"></div>
+
+                                <!-- Action Buttons -->
+                                <div id="processSection" class="action-bar hidden">
+                                    <button class="btn-extract" id="processBtn" onclick="processDocuments()">
+                                        <span class="material-icons-outlined">auto_awesome</span>
+                                        Extract Data
+                                    </button>
+                                    <button class="btn-clear" onclick="clearFiles()">
+                                        <span class="material-icons-outlined">delete_outline</span>
+                                        Clear All
+                                    </button>
+                                    <span class="file-counter" id="fileCount">0 / 2 files</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing State -->
+                        <div id="processingState" class="processing-overlay hidden">
+                            <div class="processing-box">
+                                <div class="spinner-wrap">
+                                    <div class="spinner"></div>
+                                    <span class="material-icons-outlined spinner-icon">description</span>
+                                </div>
+                                <h3>Processing Documents</h3>
+                                <p class="processing-msg">AI is extracting data from your documents...</p>
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <span class="progress-label" id="progressText">Initializing...</span>
+                                <div class="step-row">
+                                    <div class="proc-step active" id="step1">
+                                        <div class="step-dot"></div>
+                                        <span>Upload</span>
+                                    </div>
+                                    <div class="step-connector"></div>
+                                    <div class="proc-step" id="step2">
+                                        <div class="step-dot"></div>
+                                        <span>Scan</span>
+                                    </div>
+                                    <div class="step-connector"></div>
+                                    <div class="proc-step" id="step3">
+                                        <div class="step-dot"></div>
+                                        <span>Extract</span>
+                                    </div>
+                                    <div class="step-connector"></div>
+                                    <div class="proc-step" id="step4">
+                                        <div class="step-dot"></div>
+                                        <span>Done</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Results Container -->
-                <div id="resultsContainer" class="results-container hidden">
-                    <!-- Results will be dynamically added here -->
+                <!-- Results Tab -->
+                <div id="resultsTab" class="tab-panel">
+                    <div class="content-inner">
+                        <div class="content-header">
+                            <h2>Extraction Results</h2>
+                            <p>View and download extracted data from your documents</p>
+                        </div>
+
+                        <!-- No Results -->
+                        <div id="noResults" class="empty-state">
+                            <span class="material-icons-outlined">inbox</span>
+                            <h3>No Results Yet</h3>
+                            <p>Upload and process PDF documents to see results here.</p>
+                            <button class="btn-go-upload" onclick="switchTab('upload')">
+                                <span class="material-icons-outlined">cloud_upload</span>
+                                Go to Upload
+                            </button>
+                        </div>
+
+                        <!-- Results Container -->
+                        <div id="resultsContainer" class="results-wrap hidden"></div>
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 

@@ -1,10 +1,10 @@
 /**
  * American Fidelity - Document Intelligence Platform
- * Main Application Logic
+ * Application Logic
  */
 
 // ============================
-// State Management
+// State
 // ============================
 const APP_STATE = {
     isAuthenticated: false,
@@ -12,18 +12,15 @@ const APP_STATE = {
     results: [],
     isProcessing: false,
     maxFiles: 2,
-    maxFileSize: 10 * 1024 * 1024, // 10MB
+    maxFileSize: 10 * 1024 * 1024,
     webhookUrl: 'http://localhost:5678/webhook/bce61e20-8112-48b8-a195-ba3b3961243a',
 };
 
-// ============================
-// Authentication
-// ============================
-const CREDENTIALS = {
-    userId: 'admin',
-    password: 'admin',
-};
+const CREDENTIALS = { userId: 'admin', password: 'admin' };
 
+// ============================
+// Auth
+// ============================
 function handleLogin(e) {
     e.preventDefault();
     const userId = document.getElementById('userId').value.trim();
@@ -64,7 +61,7 @@ function togglePassword() {
 }
 
 // ============================
-// View & Tab Management
+// Views & Tabs
 // ============================
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -72,71 +69,42 @@ function showView(viewId) {
 }
 
 function switchTab(tabName) {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`).classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(c => c.classList.remove('active'));
     document.getElementById(`${tabName}Tab`).classList.add('active');
 }
 
 // ============================
-// File Upload Management
+// File Upload
 // ============================
 function initDropzone() {
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
 
     dropzone.addEventListener('click', () => fileInput.click());
-
-    dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('drag-over');
-    });
-
-    dropzone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-    });
-
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('drag-over'); });
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
         handleFiles(e.dataTransfer.files);
     });
-
-    fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-        fileInput.value = '';
-    });
+    fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); fileInput.value = ''; });
 }
 
 function handleFiles(fileList) {
     const files = Array.from(fileList);
-
     for (const file of files) {
         if (APP_STATE.uploadedFiles.length >= APP_STATE.maxFiles) {
             showToast(`Maximum ${APP_STATE.maxFiles} files allowed`, 'error');
             break;
         }
-
-        if (file.type !== 'application/pdf') {
-            showToast(`"${file.name}" is not a PDF file`, 'error');
-            continue;
-        }
-
-        if (file.size > APP_STATE.maxFileSize) {
-            showToast(`"${file.name}" exceeds 10MB limit`, 'error');
-            continue;
-        }
-
-        if (APP_STATE.uploadedFiles.some(f => f.name === file.name)) {
-            showToast(`"${file.name}" is already added`, 'error');
-            continue;
-        }
-
+        if (file.type !== 'application/pdf') { showToast(`"${file.name}" is not a PDF file`, 'error'); continue; }
+        if (file.size > APP_STATE.maxFileSize) { showToast(`"${file.name}" exceeds 10MB limit`, 'error'); continue; }
+        if (APP_STATE.uploadedFiles.some(f => f.name === file.name)) { showToast(`"${file.name}" is already added`, 'error'); continue; }
         APP_STATE.uploadedFiles.push(file);
     }
-
     updateFileListUI();
 }
 
@@ -169,7 +137,7 @@ function updateFileListUI() {
 
     fileList.innerHTML = APP_STATE.uploadedFiles.map((file, i) => `
         <div class="file-item">
-            <div class="file-icon">
+            <div class="file-thumb">
                 <span class="material-icons-outlined">picture_as_pdf</span>
             </div>
             <div class="file-info">
@@ -186,7 +154,7 @@ function updateFileListUI() {
 function resetUploadUI() {
     updateFileListUI();
     document.getElementById('processingState').classList.add('hidden');
-    document.getElementById('uploadTab').querySelector('.upload-section').style.display = '';
+    document.getElementById('uploadArea').style.display = '';
     document.getElementById('noResults').classList.remove('hidden');
     document.getElementById('resultsContainer').classList.add('hidden');
     document.getElementById('resultsBadge').classList.add('hidden');
@@ -195,56 +163,39 @@ function resetUploadUI() {
 }
 
 // ============================
-// Document Processing
+// Processing
 // ============================
 async function processDocuments() {
-    if (APP_STATE.uploadedFiles.length === 0) {
-        showToast('Please upload at least one PDF file', 'error');
-        return;
-    }
-
+    if (APP_STATE.uploadedFiles.length === 0) { showToast('Please upload at least one PDF file', 'error'); return; }
     if (APP_STATE.isProcessing) return;
     APP_STATE.isProcessing = true;
 
-    // Show processing UI
-    const uploadSection = document.getElementById('uploadTab').querySelector('.upload-section');
+    const uploadArea = document.getElementById('uploadArea');
     const processingState = document.getElementById('processingState');
-    uploadSection.style.display = 'none';
+    uploadArea.style.display = 'none';
     processingState.classList.remove('hidden');
-
-    // Reset processing steps
     resetProcessingSteps();
 
     try {
-        // Step 1: Uploading
         updateProgress(10, 'Preparing documents...');
         activateStep('step1');
         await delay(800);
 
-        // Step 2: Scanning
         updateProgress(30, 'Sending to extraction engine...');
         completeStep('step1');
         activateStep('step2');
 
-        // Build form data and send to webhook
         const formData = new FormData();
-        APP_STATE.uploadedFiles.forEach((file, index) => {
-            formData.append(`file${index + 1}`, file);
-        });
+        APP_STATE.uploadedFiles.forEach((file, index) => { formData.append(`file${index + 1}`, file); });
 
         updateProgress(50, 'Processing documents via AI...');
         completeStep('step2');
         activateStep('step3');
 
-        // Send to n8n webhook
         let response;
         try {
-            response = await fetch(APP_STATE.webhookUrl, {
-                method: 'POST',
-                body: formData,
-            });
+            response = await fetch(APP_STATE.webhookUrl, { method: 'POST', body: formData });
         } catch (fetchError) {
-            // If webhook is unreachable, use mock data for demo
             console.warn('Webhook unreachable, using demo data:', fetchError.message);
             updateProgress(70, 'Extracting key fields...');
             await delay(2000);
@@ -259,29 +210,23 @@ async function processDocuments() {
             const data = await response.json();
             results = normalizeResults(data);
         } else {
-            // Generate demo results for offline demonstration
             results = generateDemoResults();
         }
 
-        // Step 4: Complete
         updateProgress(100, 'Extraction complete!');
         completeStep('step3');
         activateStep('step4');
         completeStep('step4');
-
         await delay(1000);
 
-        // Store results and show
         APP_STATE.results = results;
         renderResults();
         showToast('Documents processed successfully!', 'success');
-
-        // Auto-switch to results tab
         switchTab('results');
     } catch (error) {
         console.error('Processing error:', error);
         showToast('Processing failed. Please try again.', 'error');
-        uploadSection.style.display = '';
+        uploadArea.style.display = '';
         processingState.classList.add('hidden');
     } finally {
         APP_STATE.isProcessing = false;
@@ -289,35 +234,19 @@ async function processDocuments() {
 }
 
 function normalizeResults(data) {
-    // Handle various response formats from n8n
     if (Array.isArray(data)) {
-        return data.map((item, index) => ({
-            fileName: APP_STATE.uploadedFiles[index]?.name || `Document ${index + 1}`,
-            data: item,
-        }));
+        return data.map((item, index) => ({ fileName: APP_STATE.uploadedFiles[index]?.name || `Document ${index + 1}`, data: item }));
     }
-
-    // If it's a single object with results for multiple files
     if (data.results && Array.isArray(data.results)) {
-        return data.results.map((item, index) => ({
-            fileName: APP_STATE.uploadedFiles[index]?.name || `Document ${index + 1}`,
-            data: item,
-        }));
+        return data.results.map((item, index) => ({ fileName: APP_STATE.uploadedFiles[index]?.name || `Document ${index + 1}`, data: item }));
     }
-
-    // If single result object
     if (data.file1 && data.file2) {
         return [
             { fileName: APP_STATE.uploadedFiles[0]?.name || 'Document 1', data: data.file1 },
             { fileName: APP_STATE.uploadedFiles[1]?.name || 'Document 2', data: data.file2 },
         ];
     }
-
-    // Fallback: wrap single response per file
-    return APP_STATE.uploadedFiles.map((file, index) => ({
-        fileName: file.name,
-        data: data,
-    }));
+    return APP_STATE.uploadedFiles.map((file) => ({ fileName: file.name, data: data }));
 }
 
 function generateDemoResults() {
@@ -357,33 +286,19 @@ function generateDemoResults() {
             status: 'Confirmed',
         },
     ];
-
-    return APP_STATE.uploadedFiles.map((file, index) => ({
-        fileName: file.name,
-        data: demoData[index] || demoData[0],
-    }));
+    return APP_STATE.uploadedFiles.map((file, index) => ({ fileName: file.name, data: demoData[index] || demoData[0] }));
 }
 
 // ============================
-// Progress & Steps UI
+// Progress & Steps
 // ============================
 function updateProgress(percent, text) {
-    const fill = document.getElementById('progressFill');
-    const label = document.getElementById('progressText');
-    fill.style.width = `${percent}%`;
-    label.textContent = text;
+    document.getElementById('progressFill').style.width = `${percent}%`;
+    document.getElementById('progressText').textContent = text;
 }
 
-function activateStep(stepId) {
-    document.getElementById(stepId).classList.add('active');
-}
-
-function completeStep(stepId) {
-    const step = document.getElementById(stepId);
-    step.classList.remove('active');
-    step.classList.add('completed');
-}
-
+function activateStep(stepId) { document.getElementById(stepId).classList.add('active'); }
+function completeStep(stepId) { const s = document.getElementById(stepId); s.classList.remove('active'); s.classList.add('completed'); }
 function resetProcessingSteps() {
     ['step1', 'step2', 'step3', 'step4'].forEach(id => {
         const el = document.getElementById(id);
@@ -430,7 +345,7 @@ function renderResults() {
                     </div>
                     <button class="btn-download" onclick="downloadJson(${index})">
                         <span class="material-icons-outlined">download</span>
-                        <span>Download JSON</span>
+                        Download JSON
                     </button>
                 </div>
                 <div class="result-card-body">
@@ -446,11 +361,11 @@ function renderResults() {
                         <div class="json-header">
                             <h5>
                                 <span class="material-icons-outlined">data_object</span>
-                                <span>Raw JSON Data</span>
+                                Raw JSON Data
                             </h5>
                             <button class="btn-copy" onclick="copyJson(${index})">
                                 <span class="material-icons-outlined">content_copy</span>
-                                <span>Copy</span>
+                                Copy
                             </button>
                         </div>
                         <div class="json-display">
@@ -465,29 +380,18 @@ function renderResults() {
 
 function extractKeyFields(data) {
     const fields = [];
-    const maxFields = 8;
     let count = 0;
-
     for (const [key, value] of Object.entries(data)) {
-        if (count >= maxFields) break;
+        if (count >= 8) break;
         if (typeof value === 'object' && value !== null) continue;
-
-        fields.push({
-            label: formatLabel(key),
-            value: value,
-        });
+        fields.push({ label: formatLabel(key), value: value });
         count++;
     }
-
     return fields;
 }
 
 function formatLabel(key) {
-    return key
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/[_-]/g, ' ')
-        .replace(/^\w/, c => c.toUpperCase())
-        .trim();
+    return key.replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').replace(/^\w/, c => c.toUpperCase()).trim();
 }
 
 function syntaxHighlightJson(json) {
@@ -498,8 +402,7 @@ function syntaxHighlightJson(json) {
             if (/^"/.test(match)) {
                 if (/:$/.test(match)) {
                     cls = 'json-key';
-                    match = match.replace(/:$/, '') + ':';
-                    return `<span class="${cls}">${match.split(':')[0]}</span>:`;
+                    return `<span class="${cls}">${match.slice(0, -1)}</span>:`;
                 } else {
                     cls = 'json-string';
                 }
@@ -519,11 +422,9 @@ function syntaxHighlightJson(json) {
 function downloadJson(index) {
     const result = APP_STATE.results[index];
     if (!result) return;
-
     const jsonStr = JSON.stringify(result.data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = `${result.fileName.replace('.pdf', '')}_extracted.json`;
@@ -531,19 +432,16 @@ function downloadJson(index) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
     showToast('JSON file downloaded', 'success');
 }
 
 function copyJson(index) {
     const result = APP_STATE.results[index];
     if (!result) return;
-
     const jsonStr = JSON.stringify(result.data, null, 2);
     navigator.clipboard.writeText(jsonStr).then(() => {
         showToast('JSON copied to clipboard', 'success');
     }).catch(() => {
-        // Fallback for older browsers
         const textarea = document.createElement('textarea');
         textarea.value = jsonStr;
         document.body.appendChild(textarea);
@@ -555,61 +453,35 @@ function copyJson(index) {
 }
 
 // ============================
-// Toast Notifications
+// Toast
 // ============================
 function showToast(message, type = 'success') {
-    // Remove existing toasts
     document.querySelectorAll('.toast').forEach(t => t.remove());
-
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span class="material-icons-outlined">${type === 'success' ? 'check_circle' : 'error_outline'}</span>
-        <span>${escapeHtml(message)}</span>
-    `;
+    toast.innerHTML = `<span class="material-icons-outlined">${type === 'success' ? 'check_circle' : 'error_outline'}</span><span>${escapeHtml(message)}</span>`;
     document.body.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
 // ============================
-// Utility Functions
+// Utils
 // ============================
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
+function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 // ============================
-// Initialization
+// Init
 // ============================
 document.addEventListener('DOMContentLoaded', () => {
-    // Bind login form
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
-
-    // Initialize dropzone
     initDropzone();
-
-    // Show login view
     showView('loginView');
 });
