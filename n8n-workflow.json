@@ -1,0 +1,112 @@
+{
+  "name": "American Fidelity - PDF Data Extraction",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bce61e20-8112-48b8-a195-ba3b3961243a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 340],
+      "webhookId": "bce61e20-8112-48b8-a195-ba3b3961243a"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Split uploaded PDF files into separate items\n// The webapp sends files as FormData with keys 'file1', 'file2'\nconst items = [];\nconst inputItem = $input.first();\nconst binary = inputItem.binary;\n\nif (!binary || Object.keys(binary).length === 0) {\n  throw new Error('No PDF files received. Please upload at least one PDF.');\n}\n\nfor (const [key, binaryData] of Object.entries(binary)) {\n  items.push({\n    json: {\n      fileKey: key,\n      fileName: binaryData.fileName || key\n    },\n    binary: {\n      data: binaryData\n    }\n  });\n}\n\nreturn items;"
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000002",
+      "name": "Split Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 340]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "data"
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000003",
+      "name": "Read PDF",
+      "type": "n8n-nodes-base.readPdf",
+      "typeVersion": 1,
+      "position": [720, 340]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Parse extracted PDF text into structured JSON\n// Extracts all 'Key: Value' pairs from the PDF text\nconst results = [];\n\nfor (const item of $input.all()) {\n  const text = item.json.text || '';\n  const parsed = {};\n\n  const lines = text.split('\\n');\n  let currentKey = null;\n\n  for (let i = 0; i < lines.length; i++) {\n    const trimmed = lines[i].trim();\n    if (!trimmed) {\n      currentKey = null;\n      continue;\n    }\n\n    // Find first colon to split Key: Value\n    const colonIdx = trimmed.indexOf(':');\n\n    if (colonIdx > 0) {\n      const key = trimmed.substring(0, colonIdx).trim().replace(/\\s+/g, ' ');\n      const value = trimmed.substring(colonIdx + 1).trim();\n\n      // Only accept reasonable key lengths (skip URLs, timestamps etc)\n      if (key.length > 0 && key.length < 80) {\n        parsed[key] = value;\n        currentKey = key;\n      }\n    } else if (currentKey && parsed[currentKey] !== undefined) {\n      // Continuation line - append to previous value\n      parsed[currentKey] += ' ' + trimmed;\n    }\n  }\n\n  results.push(parsed);\n}\n\n// Return as { results: [...] } so the webapp can display each PDF separately\nreturn [{ json: { results } }];"
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000004",
+      "name": "Parse Text to JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 340]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      },
+      "id": "d4e5f6a7-0001-4000-b000-000000000005",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 340]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Files": {
+      "main": [
+        [
+          {
+            "node": "Read PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read PDF": {
+      "main": [
+        [
+          {
+            "node": "Parse Text to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Text to JSON": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
