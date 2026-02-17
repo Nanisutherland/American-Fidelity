@@ -1278,7 +1278,7 @@ body {
     display: block;
 }
 
-/* Right Panel - Extracted Data Table */
+/* Right Panel - Extracted Data with Categories */
 .extraction-table-header {
     display: flex;
     align-items: center;
@@ -1302,6 +1302,12 @@ body {
     color: #C62828;
 }
 
+.ext-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .extraction-table-header .field-count {
     font-size: 12px;
     color: #999;
@@ -1311,7 +1317,134 @@ body {
     border-radius: 12px;
 }
 
-/* Data Table */
+.btn-expand-all {
+    width: 28px;
+    height: 28px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #888;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.btn-expand-all:hover {
+    background: #eee;
+    color: #C62828;
+    border-color: #C62828;
+}
+
+.btn-expand-all .material-icons-outlined {
+    font-size: 18px;
+}
+
+/* Category Accordion Container */
+.extraction-categories-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Category Accordion Item */
+.cat-accordion {
+    border-bottom: 1px solid #eee;
+}
+
+.cat-accordion:last-child {
+    border-bottom: none;
+}
+
+.cat-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: #fafbfc;
+    border: none;
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+
+.cat-accordion-header:hover {
+    background: #f0f2f8;
+}
+
+.cat-accordion.open > .cat-accordion-header {
+    background: #f5f6fa;
+    border-bottom-color: #e8e8ee;
+}
+
+.cat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cat-chevron {
+    font-size: 20px !important;
+    color: #999;
+    transition: transform 0.2s ease;
+}
+
+.cat-accordion.open > .cat-accordion-header .cat-chevron {
+    transform: rotate(90deg);
+    color: #C62828;
+}
+
+.cat-icon {
+    font-size: 20px !important;
+    color: #C62828;
+    background: #fef2f2;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cat-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.cat-field-count {
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 500;
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.cat-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Accordion Body (collapsible) */
+.cat-accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.cat-accordion.open > .cat-accordion-body {
+    max-height: 2000px;
+}
+
+/* Data Table inside accordion */
 .extraction-table-wrap {
     flex: 1;
     overflow-y: auto;

@@ -317,7 +317,6 @@ function generateConfidence(value) {
     if (!value || value === '') return 0;
     const str = String(value).trim();
     if (str.length === 0) return 0;
-    // Longer, more detailed values get higher confidence
     if (str.length > 15) return 95 + Math.floor(Math.random() * 5);   // 95-99
     if (str.length > 5)  return 90 + Math.floor(Math.random() * 8);   // 90-97
     return 85 + Math.floor(Math.random() * 10);                       // 85-94
@@ -327,6 +326,62 @@ function getConfidenceClass(score) {
     if (score >= 90) return 'high';
     if (score >= 70) return 'medium';
     return 'low';
+}
+
+// ============================
+// Category Definitions & Mapping
+// ============================
+const EXTRACTION_CATEGORIES = [
+    { id: 'benefits',    label: 'BENEFITS OFFERED',         icon: 'verified',          keywords: ['benefit', 'coverage', 'plan type', 'products offered', 'plans offered', 'insurance type', 'plan name'] },
+    { id: 'eligibility', label: 'ELIGIBILITY',              icon: 'how_to_reg',        keywords: ['eligib', 'waiting period', 'hours', 'employment', 'new hire', 'qualifying', 'full-time', 'full time', 'part-time', 'part time', 'active'] },
+    { id: 'payroll',     label: 'PAYROLL',                  icon: 'payments',          keywords: ['payroll', 'pay frequency', 'deduction', 'salary', 'wage', 'compensation', 'pay method', 'pay type', 'pay cycle'] },
+    { id: 'calendar',    label: 'PAYROLL CALENDAR',         icon: 'calendar_month',    keywords: ['calendar', 'pay date', 'schedule', 'pay period', 'pay day', 'frequency date', 'effective date'] },
+    { id: 'dental',      label: 'DENTAL',                   icon: 'dentistry',         keywords: ['dental'] },
+    { id: 'vision',      label: 'VISION',                   icon: 'visibility',        keywords: ['vision', 'eye', 'optical'] },
+    { id: 'basiclife',   label: 'BASIC LIFE',               icon: 'shield',            keywords: ['basic life', 'basic ad&d', 'basic ad and d', 'group life', 'employer life', 'employer-paid life'] },
+    { id: 'vollife',     label: 'EMPLOYEE VOLUNTARY LIFE',  icon: 'volunteer_activism',keywords: ['voluntary life', 'supplemental life', 'employee life', 'vol life', 'optional life', 'dependent life', 'spouse life', 'child life'] },
+    { id: 'afa',         label: 'AFA',                      icon: 'account_balance',   keywords: ['afa', 'american fidelity', 'fidelity account', 'flexible spending', 'fsa', 'hsa', 'hra', 'section 125', 'cafeteria'] },
+    { id: 'additional',  label: 'ADDITIONAL',               icon: 'more_horiz',        keywords: [] },
+];
+
+function categorizeFields(data) {
+    const entries = Object.entries(data).filter(([, v]) => typeof v !== 'object' || v === null);
+    const categorized = {};
+    EXTRACTION_CATEGORIES.forEach(cat => { categorized[cat.id] = []; });
+    const assigned = new Set();
+
+    // Match fields to categories by keyword
+    for (const [key, value] of entries) {
+        const lowerKey = key.toLowerCase();
+        let matched = false;
+        for (const cat of EXTRACTION_CATEGORIES) {
+            if (cat.id === 'additional') continue;
+            for (const kw of cat.keywords) {
+                if (lowerKey.includes(kw)) {
+                    categorized[cat.id].push({ key, value });
+                    assigned.add(key);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) break;
+        }
+    }
+
+    // Unmatched fields go to ADDITIONAL
+    for (const [key, value] of entries) {
+        if (!assigned.has(key)) {
+            categorized['additional'].push({ key, value });
+        }
+    }
+
+    return categorized;
+}
+
+function getCategoryConfidence(fields) {
+    if (fields.length === 0) return 0;
+    const scores = fields.map(f => generateConfidence(f.value));
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 }
 
 // ============================
@@ -349,21 +404,70 @@ function renderExtraction() {
     badge.classList.remove('hidden');
     badge.textContent = APP_STATE.results.length;
 
+    // Store confidence scores per document so they're stable
+    APP_STATE._extractionConfidences = APP_STATE.results.map(result => {
+        const categorized = categorizeFields(result.data);
+        const catScores = {};
+        EXTRACTION_CATEGORIES.forEach(cat => {
+            catScores[cat.id] = categorized[cat.id].map(f => ({
+                ...f,
+                confidence: generateConfidence(f.value)
+            }));
+        });
+        return catScores;
+    });
+
     container.innerHTML = APP_STATE.results.map((result, index) => {
-        const data = result.data;
-        const entries = Object.entries(data).filter(([, v]) => typeof v !== 'object' || v === null);
         const pdfUrl = APP_STATE.pdfBlobUrls[index] || '';
         const fileSize = APP_STATE.uploadedFiles[index] ? formatFileSize(APP_STATE.uploadedFiles[index].size) : '';
+        const catScores = APP_STATE._extractionConfidences[index];
+        const totalFields = Object.values(catScores).reduce((s, arr) => s + arr.length, 0);
 
-        const tableRows = entries.map(([key, value], i) => {
-            const conf = generateConfidence(value);
-            const confClass = getConfidenceClass(conf);
-            return `<tr>
-                <td>${i + 1}</td>
-                <td><span class="ext-field-name">${escapeHtml(key)}</span></td>
-                <td><span class="ext-field-value">${escapeHtml(String(value ?? ''))}</span></td>
-                <td class="confidence-cell"><span class="conf-badge ${confClass}">${conf}%</span></td>
-            </tr>`;
+        const categorySections = EXTRACTION_CATEGORIES.map((cat, catIdx) => {
+            const fields = catScores[cat.id];
+            if (fields.length === 0) return '';
+            const avgConf = Math.round(fields.reduce((s, f) => s + f.confidence, 0) / fields.length);
+            const confClass = getConfidenceClass(avgConf);
+            const isOpen = catIdx < 3; // First 3 categories open by default
+
+            const rows = fields.map((f, i) => {
+                const fc = getConfidenceClass(f.confidence);
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td><span class="ext-field-name">${escapeHtml(f.key)}</span></td>
+                    <td><span class="ext-field-value">${escapeHtml(String(f.value ?? ''))}</span></td>
+                    <td class="confidence-cell"><span class="conf-badge ${fc}">${f.confidence}%</span></td>
+                </tr>`;
+            }).join('');
+
+            return `
+                <div class="cat-accordion ${isOpen ? 'open' : ''}" data-cat="${cat.id}">
+                    <button class="cat-accordion-header" onclick="toggleCategory(this)">
+                        <div class="cat-header-left">
+                            <span class="material-icons-outlined cat-chevron">chevron_right</span>
+                            <span class="material-icons-outlined cat-icon">${cat.icon}</span>
+                            <span class="cat-label">${cat.label}</span>
+                            <span class="cat-field-count">${fields.length} fields</span>
+                        </div>
+                        <div class="cat-header-right">
+                            <span class="conf-badge ${confClass}">${avgConf}%</span>
+                        </div>
+                    </button>
+                    <div class="cat-accordion-body">
+                        <table class="ext-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Field</th>
+                                    <th>Value</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
         }).join('');
 
         return `
@@ -401,35 +505,46 @@ function renderExtraction() {
                             <iframe class="pdf-frame" id="pdfFrame${index}" src="${pdfUrl}" title="PDF Document ${index + 1}"></iframe>
                         </div>
                     </div>
-                    <!-- Right: Extracted Data Table -->
+                    <!-- Right: Extracted Data with Categories -->
                     <div class="split-right">
                         <div class="extraction-table-header">
                             <h4>
                                 <span class="material-icons-outlined">table_chart</span>
                                 Extracted Data
                             </h4>
-                            <span class="field-count">${entries.length} fields</span>
+                            <div class="ext-header-actions">
+                                <span class="field-count">${totalFields} fields</span>
+                                <button class="btn-expand-all" onclick="toggleAllCategories(${index}, true)" title="Expand All">
+                                    <span class="material-icons-outlined">unfold_more</span>
+                                </button>
+                                <button class="btn-expand-all" onclick="toggleAllCategories(${index}, false)" title="Collapse All">
+                                    <span class="material-icons-outlined">unfold_less</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="extraction-table-wrap">
-                            <table class="ext-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Field</th>
-                                        <th>Value</th>
-                                        <th>Confidence</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${tableRows}
-                                </tbody>
-                            </table>
+                        <div class="extraction-categories-wrap">
+                            ${categorySections}
                         </div>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function toggleCategory(btn) {
+    const accordion = btn.closest('.cat-accordion');
+    accordion.classList.toggle('open');
+}
+
+function toggleAllCategories(docIndex, expand) {
+    const sections = document.querySelectorAll('.extraction-section');
+    const section = sections[docIndex];
+    if (!section) return;
+    section.querySelectorAll('.cat-accordion').forEach(acc => {
+        if (expand) acc.classList.add('open');
+        else acc.classList.remove('open');
+    });
 }
 
 // ============================
