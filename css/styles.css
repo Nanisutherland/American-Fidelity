@@ -1147,8 +1147,304 @@ body {
 .json-display::-webkit-scrollbar-thumb { background: #333; }
 
 /* ============================
+   EXTRACTION TAB - SPLIT VIEW
+   ============================ */
+.content-wide {
+    max-width: 1400px;
+}
+
+.extraction-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.extraction-section {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8e8ee;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    overflow: hidden;
+    animation: slideDown 0.35s ease;
+}
+
+.extraction-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #C62828, #E53935);
+    color: #fff;
+}
+
+.extraction-section-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.extraction-section-header h3 .material-icons-outlined {
+    font-size: 22px;
+}
+
+.extraction-section-header .doc-filename {
+    font-size: 13px;
+    opacity: 0.85;
+    font-weight: 400;
+}
+
+/* Split View Container */
+.split-view {
+    display: flex;
+    min-height: 580px;
+}
+
+.split-left {
+    width: 50%;
+    border-right: 1px solid #e8e8ee;
+    display: flex;
+    flex-direction: column;
+    background: #f9f9fb;
+}
+
+.split-right {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* PDF Toolbar */
+.pdf-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.pdf-toolbar-btn {
+    width: 32px;
+    height: 32px;
+    background: #f5f5f5;
+    border: 1px solid #e8e8ee;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.pdf-toolbar-btn:hover {
+    background: #eee;
+    color: #333;
+}
+
+.pdf-toolbar-btn .material-icons-outlined {
+    font-size: 18px;
+}
+
+.pdf-toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: #e0e0e0;
+    margin: 0 6px;
+}
+
+.pdf-toolbar-info {
+    margin-left: auto;
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* PDF Viewer Frame */
+.pdf-frame-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+/* Right Panel - Extracted Data Table */
+.extraction-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #fafbfc;
+    border-bottom: 1px solid #eee;
+}
+
+.extraction-table-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.extraction-table-header h4 .material-icons-outlined {
+    font-size: 20px;
+    color: #C62828;
+}
+
+.extraction-table-header .field-count {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+    background: #f0f0f5;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* Data Table */
+.extraction-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.ext-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.ext-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.ext-table thead th {
+    padding: 10px 16px;
+    background: #f5f6fa;
+    color: #888;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    border-bottom: 2px solid #e8e8ee;
+    white-space: nowrap;
+}
+
+.ext-table thead th:first-child {
+    width: 44px;
+    text-align: center;
+}
+
+.ext-table thead th:last-child {
+    width: 110px;
+    text-align: center;
+}
+
+.ext-table tbody tr {
+    transition: background 0.1s ease;
+}
+
+.ext-table tbody tr:hover {
+    background: #f8f9ff;
+}
+
+.ext-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+.ext-table tbody tr:nth-child(even):hover {
+    background: #f0f2ff;
+}
+
+.ext-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #f0f0f5;
+    vertical-align: top;
+}
+
+.ext-table td:first-child {
+    text-align: center;
+    color: #bbb;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.ext-field-name {
+    font-weight: 600;
+    color: #C62828;
+    font-size: 13px;
+}
+
+.ext-field-value {
+    color: #1a1a2e;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Confidence Badge */
+.confidence-cell {
+    text-align: center;
+}
+
+.conf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 52px;
+    justify-content: center;
+}
+
+.conf-badge.high {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.conf-badge.medium {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.conf-badge.low {
+    background: #fef2f2;
+    color: #c62828;
+}
+
+/* ============================
    RESPONSIVE
    ============================ */
+@media (max-width: 1024px) {
+    .split-view {
+        flex-direction: column;
+        min-height: auto;
+    }
+    .split-left, .split-right {
+        width: 100%;
+    }
+    .split-left {
+        border-right: none;
+        border-bottom: 1px solid #e8e8ee;
+        min-height: 400px;
+    }
+    .content-wide { max-width: 100%; }
+}
+
 @media (max-width: 768px) {
     .login-card {
         padding: 36px 28px;
@@ -1161,7 +1457,7 @@ body {
         width: 60px;
     }
 
-    .sidebar-tab span:not(.material-icons-outlined) { display: none; }
+    .sidebar-tab span:not(.material-icons-outlined):not(.badge) { display: none; }
     .sidebar-tab { justify-content: center; padding: 12px; }
     .sidebar-brand span { display: none; }
     .badge { position: absolute; top: 4px; right: 4px; font-size: 9px; padding: 0 5px; }

@@ -14,7 +14,6 @@
     <!-- ==================== LOGIN VIEW ==================== -->
     <div id="loginView" class="view active">
         <div class="login-bg">
-            <!-- SVG Wave decorations -->
             <svg class="wave-deco wave-1" viewBox="0 0 1440 320" preserveAspectRatio="none">
                 <path d="M0,192L48,176C96,160,192,128,288,138.7C384,149,480,203,576,213.3C672,224,768,192,864,165.3C960,139,1056,117,1152,128C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="rgba(255,255,255,0.03)"/>
             </svg>
@@ -25,9 +24,7 @@
             <div class="floating-circle c2"></div>
             <div class="floating-circle c3"></div>
         </div>
-
         <div class="login-card">
-            <!-- Sutherland Logo -->
             <div class="sutherland-logo">
                 <svg width="40" height="40" viewBox="0 0 40 40">
                     <rect x="2" y="8" width="5" height="24" rx="1" fill="#E53935" transform="rotate(-10 4.5 20)"/>
@@ -38,10 +35,8 @@
                 </svg>
                 <span class="sutherland-text">SUTHERLAND</span>
             </div>
-
             <h1 class="login-title">American Fidelity</h1>
             <p class="login-subtitle">Document Intelligence Platform</p>
-
             <form id="loginForm" autocomplete="off">
                 <div class="form-group">
                     <label for="userId">Username</label>
@@ -67,10 +62,8 @@
 
     <!-- ==================== DASHBOARD VIEW ==================== -->
     <div id="dashboardView" class="view">
-        <!-- Top Header Bar -->
         <header class="app-header">
             <div class="header-left">
-                <!-- American Fidelity Logo -->
                 <div class="af-logo">
                     <svg width="36" height="36" viewBox="0 0 36 36">
                         <rect x="2" y="6" width="4" height="24" rx="2" fill="#C62828"/>
@@ -98,7 +91,6 @@
         </header>
         <div class="header-accent"></div>
 
-        <!-- Main Layout: Sidebar + Content -->
         <div class="app-body">
             <!-- Left Sidebar -->
             <aside class="sidebar">
@@ -106,6 +98,11 @@
                     <button class="sidebar-tab active" data-tab="upload" onclick="switchTab('upload')">
                         <span class="material-icons-outlined">cloud_upload</span>
                         <span>Upload</span>
+                    </button>
+                    <button class="sidebar-tab" data-tab="extraction" onclick="switchTab('extraction')">
+                        <span class="material-icons-outlined">document_scanner</span>
+                        <span>Extraction</span>
+                        <span id="extractionBadge" class="badge hidden">0</span>
                     </button>
                     <button class="sidebar-tab" data-tab="results" onclick="switchTab('results')">
                         <span class="material-icons-outlined">assessment</span>
@@ -136,8 +133,6 @@
                             <h2>Upload Documents</h2>
                             <p>Upload PDF documents for AI-powered data extraction</p>
                         </div>
-
-                        <!-- Upload Area -->
                         <div class="upload-area" id="uploadArea">
                             <div class="upload-card">
                                 <div class="dropzone" id="dropzone">
@@ -151,11 +146,7 @@
                                     </div>
                                     <input type="file" id="fileInput" accept=".pdf" multiple hidden>
                                 </div>
-
-                                <!-- File List -->
                                 <div id="fileList" class="file-list hidden"></div>
-
-                                <!-- Action Buttons -->
                                 <div id="processSection" class="action-bar hidden">
                                     <button class="btn-extract" id="processBtn" onclick="processDocuments()">
                                         <span class="material-icons-outlined">auto_awesome</span>
@@ -169,8 +160,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Processing State -->
                         <div id="processingState" class="processing-overlay hidden">
                             <div class="processing-box">
                                 <div class="spinner-wrap">
@@ -209,6 +198,32 @@
                     </div>
                 </div>
 
+                <!-- ==================== EXTRACTION TAB (NEW) ==================== -->
+                <div id="extractionTab" class="tab-panel">
+                    <div class="content-inner content-wide">
+                        <div class="content-header">
+                            <h2>Data Extraction</h2>
+                            <p>Review extracted data alongside the original PDF documents</p>
+                        </div>
+
+                        <!-- No Extraction State -->
+                        <div id="noExtraction" class="empty-state">
+                            <span class="material-icons-outlined">document_scanner</span>
+                            <h3>No Extractions Yet</h3>
+                            <p>Upload and process PDF documents to review extractions here.</p>
+                            <button class="btn-go-upload" onclick="switchTab('upload')">
+                                <span class="material-icons-outlined">cloud_upload</span>
+                                Go to Upload
+                            </button>
+                        </div>
+
+                        <!-- Extraction Sections Container -->
+                        <div id="extractionContainer" class="extraction-sections hidden">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Results Tab -->
                 <div id="resultsTab" class="tab-panel">
                     <div class="content-inner">
@@ -216,8 +231,6 @@
                             <h2>Extraction Results</h2>
                             <p>View and download extracted data from your documents</p>
                         </div>
-
-                        <!-- No Results -->
                         <div id="noResults" class="empty-state">
                             <span class="material-icons-outlined">inbox</span>
                             <h3>No Results Yet</h3>
@@ -227,8 +240,6 @@
                                 Go to Upload
                             </button>
                         </div>
-
-                        <!-- Results Container -->
                         <div id="resultsContainer" class="results-wrap hidden"></div>
                     </div>
                 </div>
